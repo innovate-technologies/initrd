@@ -407,7 +407,7 @@ log_end_msg
 
 if [ "$(get_any DONT_FETCH_KERNEL_MODULES)" != "1" ]; then
     rm -f ${rootmnt}/usr/local/sbin/scw-sync-kernel-modules
-    wget http://kernel.innovatete.ch/scw-sync-kernel-modules -o ${rootmnt}/usr/local/sbin/scw-sync-kernel-modules
+    wget http://kernel.innovatete.ch/scw-sync-kernel-modules -O ${rootmnt}/usr/local/sbin/scw-sync-kernel-modules
     log_begin_msg "Fetching kernel modules"
     chroot /newroot /usr/local/sbin/scw-sync-kernel-modules || chroot /newroot /usr/local/sbin/oc-sync-kernel-modules || true
     log_end_msg
