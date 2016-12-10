@@ -1,27 +1,22 @@
+sudo: required
 language: bash
-
+addons:
+  ssh_known_hosts: kernel.innovatete.ch
+  apt:
+    packages:
+        - sshpass
 services:
 - docker
-
-sudo: required
-
-env:
-- ACTION=check  TARGET=x86_64
-- ACTION=build  TARGET=x86_64
-
-before_install:
-- env
-- docker images
-- docker info
-- docker version
-- df -h
-#- if [ "$ACTION" = "build" -a -n "$TRAVIS_TAG" ]; then sudo apt-get update && sudo apt-get install -y u-boot-tools || true; fi
+install:
+- docker pull multiarch/qemu-user-static:register
+- docker run --rm --privileged multiarch/qemu-user-static:register --reset
+- export SSHPASS=$DEPLOY_PASS
 
 script:
-- if [ "$ACTION" = "check" ]; then cd ${TRAVIS_BUILD_DIR}/Linux && make           travis_check; fi
-- if [ "$ACTION" = "check" ]; then cd ${TRAVIS_BUILD_DIR}/Openbsd && make         travis_check; fi
-- if [ "$ACTION" = "check" ]; then cd ${TRAVIS_BUILD_DIR}/scw-boot-tools && make  travis_check; fi
-- if [ "$ACTION" = "build" ]; then cd ${TRAVIS_BUILD_DIR}/Linux && make           travis_build; fi
-- if [ "$ACTION" = "build" ]; then cd ${TRAVIS_BUILD_DIR}/Openbsd && make         travis_build; fi
-- if [ "$ACTION" = "build" ]; then cd ${TRAVIS_BUILD_DIR}/scw-boot-tools && make  travis_build; fi
-- ls -laR
+- sshpass -e ssh travis@kernel.innovatete.ch "echo ok";
+- if [ "$TRAVIS_BRANCH" != "master" ]; then cd Linux;make build TARGET=x86_64; fi
+- if [ "$TRAVIS_BRANCH" != "master" ]; then cd Linux;make build TARGET=armv7l; fi
+
+after_success:
+- if [ "$TRAVIS_BRANCH" != "master" ]; then sshpass -e  scp -r ./uInitrd-Linux-* travis@kernel.innovatete.ch:/var/www/html/; fi
+
